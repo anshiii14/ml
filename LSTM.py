@@ -2,74 +2,70 @@
 import numpy as np
 
 # Input sequence
-X = [1, 2, 3, 4]
+X = np.array([[1], [2], [3], [4]], dtype=float)
 
-# Sigmoid function
+# Initialize weights
+np.random.seed(1)
+
+Wx = np.random.randn(1, 8) * 0.1
+Wh = np.random.randn(2, 8) * 0.1
+b = np.zeros((1, 8))
+
+Wy = np.random.randn(2, 1) * 0.1
+by = np.zeros((1, 1))
+
+# Activation functions
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
-# Initial cell state
-c = 0.0
+def tanh(x):
+    return np.tanh(x)
 
-# Initial hidden state
-h = 0.0
+# LSTM function
+def lstm(sequence):
+    h = np.zeros((1, 2))
+    c = np.zeros((1, 2))
 
-# Process each input
-for x in X:
+    for t in range(len(sequence)):
 
-    # Forget gate
-    f = sigmoid(x * 0.2)
+        # Current input
+        xt = sequence[t].reshape(1, 1)
 
-    # Input gate
-    i = sigmoid(x * 0.3)
+        # Calculate gates
+        gates = xt @ Wx + h @ Wh + b
 
-    # Candidate memory
-    g = np.tanh(x * 0.5)
+        # Forget gate
+        f = sigmoid(gates[:, 0:2])
 
-    # Update cell state
-    c = f*c + i*g
+        # Input gate
+        i = sigmoid(gates[:, 2:4])
 
-    # Output gate
-    o = sigmoid(x * 0.4)
+        # Candidate cell state
+        g = tanh(gates[:, 4:6])
 
-    # Update hidden state
-    h = o * np.tanh(c)
+        # Output gate
+        o = sigmoid(gates[:, 6:8])
 
-    print("\nInput:", x)
+        # Update cell state
+        c = f * c + i * g
 
-    print("Forget Gate:", round(f, 4))
+        # Update hidden state
+        h = o * tanh(c)
 
-    print("Input Gate:", round(i, 4))
+        print("Step", t+1)
+        print("Forget Gate:", f)
+        print("Input Gate:", i)
+        print("Cell State:", c)
+        print("Output Gate:", o)
+        print("Hidden State:", h)
+        print()
 
-    print("Output Gate:", round(o, 4))
+    # Final prediction
+    output = h @ Wy + by
+    return output
 
-    print("Cell State:", round(c, 4))
+# Execute LSTM
+result = lstm(X)
 
-    print("Hidden State:", round(h, 4))
-
-# Final output
-print("\nFinal LSTM Output:")
-print(round(h, 4))
-
-# Test sequence
-test = [2, 3, 4]
-
-c = 0.0
-h = 0.0
-
-for x in test:
-
-    f = sigmoid(x * 0.2)
-    i = sigmoid(x * 0.3)
-    g = np.tanh(x * 0.5)
-
-    c = f*c + i*g
-
-    o = sigmoid(x * 0.4)
-
-    h = o * np.tanh(c)
-
-print("\nTest Prediction:")
-print(round(h, 4))
-
-print("LSTM execution completed")
+print("Final LSTM Output:")
+print(result)

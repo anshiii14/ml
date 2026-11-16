@@ -2,83 +2,81 @@
 import numpy as np
 
 # Hidden states
-states = ["Sunny", "Rainy"]
+states = ["Rainy", "Sunny"]
+
+# Observations
+observations = ["walk", "shop", "clean"]
 
 # Initial probabilities
-start = np.array([0.6, 0.4])
+start_prob = np.array([0.6, 0.4])
 
 # Transition probabilities
-trans = np.array([
+transition = np.array([
     [0.7, 0.3],
     [0.4, 0.6]
 ])
 
 # Emission probabilities
-emit = np.array([
-    [0.8, 0.2],
-    [0.3, 0.7]
+emission = np.array([
+    [0.1, 0.4, 0.5],
+    [0.6, 0.3, 0.1]
 ])
 
-# Observation sequence
-obs = [0, 1, 0]
+# Given observation sequence
+sequence = ["walk", "shop", "clean"]
 
-# Number of states and observations
-N = len(states)
-T = len(obs)
+# Convert observations into indexes
+obs = [observations.index(x) for x in sequence]
 
-# Create probability table
-dp = np.zeros((T, N))
+# Viterbi algorithm
+def viterbi(obs):
+    n = len(states)
+    T = len(obs)
 
-# Create backtracking table
-path = np.zeros((T, N), dtype=int)
+    # Probability table
+    dp = np.zeros((T, n))
 
-# First observation
-dp[0] = start * emit[:, obs[0]]
+    # Store previous states
+    path = np.zeros((T, n), dtype=int)
 
-print("Initial Probability:")
-print(dp[0])
+    # Step 1: Initialization
+    for i in range(n):
+        dp[0, i] = start_prob[i] * emission[i, obs[0]]
 
-# Calculate probabilities
-for t in range(1, T):
+    # Step 2: Recursion
+    for t in range(1, T):
+        for j in range(n):
 
-    for j in range(N):
+            probabilities = (
+                dp[t-1] * transition[:, j]
+            )
 
-        # Calculate previous probabilities
-        values = dp[t-1] * trans[:, j]
+            path[t, j] = np.argmax(probabilities)
 
-        # Find maximum probability
-        best_previous = np.argmax(values)
+            dp[t, j] = (
+                np.max(probabilities) *
+                emission[j, obs[t]]
+            )
 
-        # Store best previous state
-        path[t, j] = best_previous
+    # Step 3: Find final state
+    last_state = np.argmax(dp[T-1])
 
-        # Calculate current probability
-        dp[t, j] = (
-            values[best_previous] *
-            emit[j, obs[t]]
-        )
+    # Step 4: Backtracking
+    best_path = [last_state]
 
-    print("\nStep:", t+1)
-    print(dp[t])
+    for t in range(T-1, 0, -1):
+        last_state = path[t, last_state]
+        best_path.append(last_state)
 
-# Find final state
-last_state = np.argmax(dp[T-1])
+    # Reverse the path
+    best_path.reverse()
 
-# Backtracking
-best_path = [last_state]
+    return [states[i] for i in best_path], np.max(dp[T-1])
 
-for t in range(T-1, 0, -1):
-
-    previous = path[t, best_path[0]]
-
-    best_path.insert(0, previous)
+# Execute algorithm
+result, probability = viterbi(obs)
 
 # Display result
-print("\nMost Likely Hidden States:")
-
-for state in best_path:
-    print(states[state])
-
-print("\nBest State Sequence:", best_path)
-
-print("Viterbi completed")
+print("Observation Sequence:", sequence)
+print("Most Likely State Sequence:", result)
+print("Probability:", probability)

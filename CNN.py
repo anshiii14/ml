@@ -1,23 +1,23 @@
 
 import numpy as np
 
-# Input image (5x5)
+# Input image
 image = np.array([
     [1, 0, 1, 0, 1],
     [0, 1, 0, 1, 0],
     [1, 1, 1, 0, 0],
     [0, 0, 1, 1, 1],
     [1, 0, 0, 1, 0]
-], dtype=float)
+])
 
-# 3x3 filter (kernel)
+# 3x3 filter
 kernel = np.array([
     [1, 0, -1],
     [1, 0, -1],
     [1, 0, -1]
-], dtype=float)
+])
 
-# Convolution operation
+# Convolution
 def convolution(img, filt):
     h, w = img.shape
     kh, kw = filt.shape
@@ -34,7 +34,7 @@ def convolution(img, filt):
 def relu(x):
     return np.maximum(0, x)
 
-# Max pooling (2x2)
+# Max pooling
 def max_pooling(x):
     h, w = x.shape
     result = np.zeros((h//2, w//2))
@@ -45,31 +45,20 @@ def max_pooling(x):
 
     return result
 
-# Flatten the feature map
-def flatten(x):
-    return x.flatten()
-
-# Fully connected output
-def predict(features):
-    weights = np.ones(len(features))
-    score = np.dot(features, weights)
-    return "Class 1" if score > 0 else "Class 0"
-
-# CNN execution
+# Execute CNN operations
 conv = convolution(image, kernel)
 activated = relu(conv)
 pooled = max_pooling(activated)
-features = flatten(pooled)
-result = predict(features)
+features = pooled.flatten()
 
-print("Input Image:")
-print(image)
-print("\nAfter Convolution:")
+print("Convolution Output:")
 print(conv)
+
 print("\nAfter ReLU:")
 print(activated)
+
 print("\nAfter Max Pooling:")
 print(pooled)
+
 print("\nFlattened Features:")
 print(features)
-print("\nPredicted Output:", result)
